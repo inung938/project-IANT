@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model pengguna {
+  id_pengguna   Int      @id @default(autoincrement())
+  username      String?
+  email         String   @unique
+  password      String
+  jenis_kelamin String?
+  usia          Int?
+  berat_badan   Float?
+  tinggi_badan  Float?
+  createdAt     DateTime @default(now())
+  tanggal_lahir DateTime?
+
+  profil profil?
+  homeStats homeStats[]
+  otpCode otpCode?
+  rencanaOlahraga rencanaOlahraga[]
+  olahraga olahraga[]
+  petaRute petaRute[]
+}
+
+model profil {
+  profil_id     Int @id @default(autoincrement())
+  id_pengguna   Int @unique
+  pengguna      pengguna @relation(fields: [id_pengguna], references: [id_pengguna])
+  nama          String?
+  info_tentang  String?
+  aktivitas_favorit  String?
+}
+
+model homeStats {
+  stats_id        Int @id @default(autoincrement())
+  id_pengguna     Int
+  pengguna        pengguna @relation(fields: [id_pengguna], references: [id_pengguna])
+  km_tempuh       Float?
+  kalori_terbakar Float?
+  durasi_olahraga Int?
+  langkah_harian  Int?
+  berat_badan     Float?
+  tanggal         DateTime?
+}
+
+model otpCode {
+  otp_id      Int @id @default(autoincrement())
+  id_pengguna Int @unique
+  pengguna    pengguna  @relation(fields: [id_pengguna], references: [id_pengguna])
+  kode        String
+  expiredAt   DateTime
+  createdAt   DateTime  @default(now())
+}
+
+enum Hari {
+  SENIN
+  SELASA
+  RABU
+  KAMIS
+  JUMAT
+  SABTU
+  MINGGU
+}
+
+model rencanaOlahraga {
+  rencana_id        Int @id @default(autoincrement())
+  id_pengguna       Int
+  pengguna          pengguna  @relation(fields: [id_pengguna], references: [id_pengguna])
+  nama_rencana      String?
+  target_km         Float?
+  target_kalori     Float?
+  target_durasi     Int?
+  target_olahraga   String
+  tanggal_mulai     DateTime
+  tanggal_berakhir  DateTime
+  waktu_pengingat   DateTime
+  hari_olahraga     String @db.Text
+
+  olahraga          olahraga[]
+}
+
+model olahraga {
+  olahraga_id       Int @id @default(autoincrement())
+  id_pengguna       Int
+  pengguna          pengguna  @relation(fields: [id_pengguna], references: [id_pengguna])
+  rencana_id        Int?
+  rencanaOlahraga   rencanaOlahraga? @relation(fields: [rencana_id], references: [rencana_id])
+  jenis_olahraga    String
+  total_jarak       Float?
+  status            String
+  tanggal_olahraga  DateTime
+
+  petaRute        petaRute?
+}
+
+model petaRute {
+  rute_id             Int @id @default(autoincrement())
+  olahraga_id         Int @unique
+  olahraga            olahraga  @relation(fields: [olahraga_id], references: [olahraga_id])
+  id_pengguna         Int 
+  pengguna            pengguna  @relation(fields: [id_pengguna], references: [id_pengguna])
+  waktu_mulai         Int
+  waktu_selesai       Int?
+  jarak               Float?
+  kalori_terbakar     Float?
+  kecepatan_rata_rata Float?
+  koordinat_gps       String @db.LongText
+}
